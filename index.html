@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm DJ Leaderboard</title>
+    <style>
+        :root {
+            --neon-teal: #00d1b2;
+            --bg-dark: #0a0a0a;
+            --card-bg: #151515;
+            --border-color: #333;
+            --danger-red: #ff4d4d;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 50px 20px;
+            transition: 0.3s;
+        }
+
+        /* ADMIN MODE STYLING */
+        body.admin-mode [contenteditable="true"] {
+            outline: 1px dashed var(--neon-teal);
+            padding: 2px 5px;
+            border-radius: 4px;
+            cursor: text;
+        }
+
+        #admin-status {
+            display: none;
+            position: fixed;
+
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: var(--neon-teal);
+            color: black;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            padding: 8px 0;
+            z-index: 1000;
+            text-transform: uppercase;
+        }
+
+        .admin-btn {
+            background: black;
+            color: var(--neon-teal);
+            border: 1px solid black;
+            padding: 2px 12px;
+            margin-left: 10px;
+
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .admin-btn:hover {
+            background: #222;
+        }
+
+        .admin-btn.exit-btn {
+            background: #222;
+            color: white;
+            border-color: white;
+        }
+
+        .admin-btn.exit-btn:hover {
+
+            background: #000;
+            color: var(--neon-teal);
+            border-color: var(--neon-teal);
+        }
+
+        /* REMOVE BUTTON STYLING */
+        .remove-btn {
+            display: none;
+            background: transparent;
+            color: var(--danger-red);
+            border: 1px solid var(--danger-red);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            line-height: 18px;
+            text-align: center;
+            cursor: pointer;
+            margin-right: 10px;
+
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        body.admin-mode .remove-btn {
+            display: inline-block;
+        }
+
+        .remove-btn:hover {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        h1 {
+            color: var(--neon-teal);
+            text-shadow: 0 0 15px rgba(0, 209, 178, 0.5);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 40px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .leaderboard-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: #1a1a1a;
+            color: var(--neon-teal);
+            padding: 15px 20px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #222;
+        }
+
+
+        tbody tr:hover {
+            background: #1c1c1c;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .player-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .score {
+            text-align: right;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--neon-teal);
+            font-weight: bold;
+
+            font-size: 1.2rem;
+        }
+
+        /* PUBLIC ENTRY STYLING */
+        .public-entry {
+            display: flex;
+            gap: 10px;
+            background: #111;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .public-entry input {
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+
+            color: white;
+            padding: 10px;
+            font-family: inherit;
+        }
+
+        .public-entry input:focus {
+            outline: none;
+            border-color: var(--neon-teal);
+        }
+
+        .public-entry button {
+            background: var(--neon-teal);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+
+        }
+
+        .public-entry button:hover {
+            background: #00b398;
+            box-shadow: 0 0 10px rgba(0, 209, 178, 0.4);
+        }
+
+        .footer {
+            margin-top: 50px;
+            font-size: 0.8rem;
+            color: #444;
+            text-align: center;
+        }
+
+        #logo {
+            position: absolute; 
+            top: 20px; 
+            left: 20px;
+            color: var(--neon-teal);
+
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        /* LOCKOUT OVERLAY */
+        #lockout-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.98);
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+
+        #lockout-screen h2 {
+            color: var(--danger-red);
+            text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="admin-status">
+        Admin Mode Active
+        <button class="admin-btn" onclick="addPlayer()">+ Add Player</button>
+        <button class="admin-btn exit-btn" onclick="saveAndExit()">Save & Exit</button>
+    </div>
+
+    <div id="lockout-screen">
+        <h2>ACCESS DENIED</h2>
+        <p>Security protocol engaged. System locked.</p>
+        <p id="lockout-timer" style="color: #666;"></p>
+    </div>
+
+
+    <a href="#" id="logo">Rhythm DJ</a>
+
+    <h1 id="page-title">Rhythm DJ</h1>
+    <p class="subtitle" id="page-subtitle">Global Rankings</p>
+
+    <div class="container">
+        <div class="leaderboard-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player</th>
+                        <th style="text-align: right;">Score</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Data loaded via JS -->
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="public-entry">
+            <input type="text" id="public-name-input" placeholder="Enter your name...">
+            <button onclick="publicJoin()">Join Board</button>
+        </div>
+
+        <div class="footer">
+            &copy; Avis & DeBus | v1.0.0 PRO
+        </div>
+    </div>
+<script>
+  // Disable right-click context menu
+  document.addEventListener('contextmenu', event => event.preventDefault());
+
+  // Disable specific keyboard shortcuts
+  document.onkeydown = function(e) {
+    // Disable F12
+    if (event.keyCode == 123) {
+      return false;
+    }
+    // Disable Ctrl+Shift+I (Inspect)
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
+      return false;
+    }
+    // Disable Ctrl+Shift+J (Console)
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
+      return false;
+    }
+    // Disable Ctrl+U (View Source)
+    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
+      return false;
+    }
+  };
+
+        let inputBuffer = "";
+        const ADMIN_KEYWORD = "asdk";
+        const ADMIN_PASSWORD = "copilot sucks";
+
+        const defaultData = {
+            title: "Rhythm DJ",
+            subtitle: "Global Rankings",
+            leaderboard: [
+
+                { name: "New Player", score: "---" },
+                { name: "New Player(2)", score: "---" },
+              
+            ]
+        };
+
+        const getSecurityData = () => {
+            const data = localStorage.getItem('rdj_security');
+            return data ? JSON.parse(data) : {
+                failedAttempts: 0,
+                windowStart: null,
+                lockoutUntil: null,
+                lockoutLevel: 0
+            };
+        };
+
+        const saveSecurityData = (data) => {
+
+            localStorage.setItem('rdj_security', JSON.stringify(data));
+        };
+
+        const savePageData = () => {
+            const leaderboardRows = [];
+            const rows = document.querySelectorAll('#leaderboard-body tr');
+            rows.forEach(row => {
+                leaderboardRows.push({
+                    name: row.querySelector('.player-name').innerText,
+                    score: row.querySelector('.score').innerText
+                });
+            });
+
+            const pageData = {
+                title: document.getElementById('page-title').innerText,
+                subtitle: document.getElementById('page-subtitle').innerText,
+                leaderboard: leaderboardRows
+            };
+
+
+            localStorage.setItem('rdj_page_content', JSON.stringify(pageData));
+        };
+
+        const createRow = (name, score) => {
+            const tr = document.createElement('tr');
+            const isAdmin = document.body.classList.contains('admin-mode');
+            tr.innerHTML = `
+                <td>
+                    <div class="player-info">
+                        <button class="remove-btn" onclick="removePlayer(this)">×</button>
+                        <span class="player-name" ${isAdmin ? 'contenteditable="true"' : ''}>${name}</span>
+                    </div>
+                </td>
+                <td class="score" ${isAdmin ? 'contenteditable="true"' : ''}>${score}</td>
+            `;
+            return tr;
+        };
+
+        const loadPageData = () => {
+
+            const savedData = localStorage.getItem('rdj_page_content');
+            const data = savedData ? JSON.parse(savedData) : defaultData;
+
+            document.getElementById('page-title').innerText = data.title;
+            document.getElementById('page-subtitle').innerText = data.subtitle;
+
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+            data.leaderboard.forEach(entry => {
+                tbody.appendChild(createRow(entry.name, entry.score));
+            });
+        };
+
+        const checkLockout = () => {
+            const data = getSecurityData();
+            const now = Date.now();
+
+            if (data.lockoutUntil && now < data.lockoutUntil) {
+                document.getElementById('lockout-screen').style.display = 'flex';
+
+                const remainingHours = Math.ceil((data.lockoutUntil - now) / (1000 * 60 * 60));
+                document.getElementById('lockout-timer').innerText = `Locked for approximately ${remainingHours} more hour(s).`;
+                return true;
+            }
+            return false;
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if (checkLockout()) return;
+
+            inputBuffer += e.key.toLowerCase();
+            if (inputBuffer.length > 10) inputBuffer = inputBuffer.substring(1);
+
+            if (inputBuffer.includes(ADMIN_KEYWORD)) {
+                inputBuffer = "";
+                handleLogin();
+            }
+        });
+
+
+        const handleLogin = () => {
+            const password = prompt("Enter Admin Password:");
+            if (!password) return;
+
+            const data = getSecurityData();
+            const now = Date.now();
+
+            if (!data.windowStart || (now - data.windowStart > 5 * 60 * 1000)) {
+                data.windowStart = now;
+                data.failedAttempts = 0;
+            }
+
+            if (password === ADMIN_PASSWORD) {
+                enterAdminMode();
+                data.failedAttempts = 0;
+                saveSecurityData(data);
+            } else {
+                data.failedAttempts++;
+                if (data.failedAttempts >= 3) {
+
+                    data.lockoutLevel++;
+                    const hours = 24 * data.lockoutLevel;
+                    data.lockoutUntil = now + (hours * 60 * 60 * 1000);
+                    saveSecurityData(data);
+                    checkLockout();
+                    alert(`Wrong password. System locked for ${hours} hours.`);
+                } else {
+                    saveSecurityData(data);
+                    alert(`Incorrect Password. ${3 - data.failedAttempts} attempts remaining.`);
+                }
+            }
+        };
+
+        const enterAdminMode = () => {
+            document.body.classList.add('admin-mode');
+            document.getElementById('admin-status').style.display = 'block';
+            
+            document.getElementById('page-title').contentEditable = true;
+            document.getElementById('page-subtitle').contentEditable = true;
+
+            
+            document.querySelectorAll('.player-name, .score').forEach(cell => {
+                cell.contentEditable = true;
+            });
+            
+            alert("Admin Mode Active. You can now edit scores and names.");
+        };
+
+        const addPlayer = () => {
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.appendChild(createRow("New Player", "0"));
+        };
+
+        const publicJoin = () => {
+            const input = document.getElementById('public-name-input');
+            const name = input.value.trim();
+            
+            if (name === "") {
+                alert("Please enter a name.");
+
+                return;
+            }
+
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.appendChild(createRow(name, "---"));
+            input.value = "";
+            alert(`Welcome, ${name}! Your entry has been added. Contact an admin to update your score.`);
+        };
+
+        const removePlayer = (btn) => {
+            if (confirm("Are you sure you want to remove this player?")) {
+                const row = btn.closest('tr');
+                row.remove();
+            }
+        };
+
+        const saveAndExit = () => {
+            savePageData();
+            
+
+            document.body.classList.remove('admin-mode');
+            document.getElementById('admin-status').style.display = 'none';
+            
+            document.getElementById('page-title').contentEditable = false;
+            document.getElementById('page-subtitle').contentEditable = false;
+            
+            document.querySelectorAll('.player-name, .score').forEach(cell => {
+                cell.contentEditable = false;
+            });
+            
+            inputBuffer = "";
+            alert("Changes saved successfully!");
+        };
+
+        window.onload = () => {
+            loadPageData();
+            checkLockout();
+        };
+    </script>
+</body>
+</html>
+
+
